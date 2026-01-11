@@ -1,0 +1,1 @@
+PNG image placeholder - Upload actual PNG image to this location. This file is used for testing scraper handling of image content. When you scrape the /image.png endpoint, this file will be served. Make sure to replace this placeholder with an actual PNG image for proper testing.

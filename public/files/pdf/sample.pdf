@@ -1,0 +1,1 @@
+PDF placeholder - Upload actual PDF file to this location. This file is used for testing scraper handling of PDF content. When you scrape the /pdf or /simple.pdf endpoints, this file will be served. Make sure to replace this placeholder with an actual PDF file for proper testing.

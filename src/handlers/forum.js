@@ -1,5 +1,5 @@
-export function handleForum(req, res) {
-  const page = parseInt(req.query.page, 10) || 1;
+export function handleForum(c) {
+  const page = Number.parseInt(c.req.query('page') ?? '1', 10) || 1;
 
   let content = `<!DOCTYPE html>
 <html>
@@ -58,5 +58,5 @@ export function handleForum(req, res) {
 </body>
 </html>`;
 
-  res.type('text/html').send(content);
+  return c.html(content);
 }

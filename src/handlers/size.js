@@ -1,80 +1,85 @@
-export function handle100Kb(req, res) {
-  const externalPath = process.env.PATH_100KB || 'https://example.com/path/to/100kb-file.txt';
-  
-  const content = `This endpoint is configured to serve 100KB of content from an external path.
+// R2 file paths for size test files
+const FILE_100KB_PATH = 'assets/100kb.txt';
+const FILE_1MB_PATH = 'assets/1mb.txt';
+const FILE_10MB_PATH = 'assets/10mb.txt';
 
-Current external path: ${externalPath}
+// Detect environment once
+const isLocalEnv = typeof process !== 'undefined' && process.env.NODE_ENV !== 'local';
 
-Configuration:
-- Environment variable: PATH_100KB
-- Default value: https://example.com/path/to/100kb-file.txt
-- Purpose: Serve 100KB of content for testing scraper handling of medium-sized files
+async function loadFromLocalFileSystem(localRelativePath, contentType, filename, c) {
+  // Node.js or fallback: dynamically import fs modules
+  const { readFile } = await import('node:fs/promises');
+  const { fileURLToPath } = await import('node:url');
+  const { dirname, join } = await import('node:path');
 
-The content should be fetched from the configured external path and served through this endpoint. This allows you to test how your scraper handles medium-sized file downloads without redirecting. The server acts as a proxy, fetching content from the external source and delivering it to your scraper.
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const fullPath = join(__dirname, localRelativePath);
+  const body = await readFile(fullPath);
 
-This approach is useful for testing bandwidth handling, timeout settings, and memory management when scraping medium-sized resources. Ensure your scraper can handle files of this size efficiently without excessive memory usage or timeout errors.
+  const headers = {
+    'Content-Type': contentType,
+    'Content-Length': String(body.byteLength)
+  };
 
-Instructions:
-1. Upload your 100KB file to the external storage location
-2. Set the PATH_100KB environment variable to the absolute URL
-3. Test your scraper against this endpoint
-4. Verify that the scraper correctly retrieves and processes the 100KB content
+  if (filename) {
+    headers['Content-Disposition'] = `inline; filename="${filename}"`;
+  }
 
-This response text is intentionally longer than 200 characters to provide adequate context for configuration and testing purposes.`;
-
-  res.type('text/plain').send(content);
+  return c.newResponse(body, { status: 200, headers });
 }
 
-export function handle1Mb(req, res) {
-  const externalPath = process.env.PATH_1MB || 'https://example.com/path/to/1mb-file.txt';
-  
-  const content = `This endpoint is configured to serve 1MB of content from an external path.
+async function loadStaticFile(c, r2Key, localRelativePath, contentType, filename) {
+  try {
+    // Check if running in Cloudflare Workers environment
+    if (!isLocalEnv) {
+      // Cloudflare Workers: use R2 bucket only
+      const bucket = c.env.ASSETS_BUCKET;
 
-Current external path: ${externalPath}
+      if (!bucket) {
+        return c.text('R2 bucket not configured. Please set up ASSETS_BUCKET binding in wrangler.toml', 500);
+      }
 
-Configuration:
-- Environment variable: PATH_1MB
-- Default value: https://example.com/path/to/1mb-file.txt
-- Purpose: Serve 1MB of content for testing scraper handling of large files
+      // Fetch object from R2
+      const object = await bucket.get(r2Key);
 
-The content should be fetched from the configured external path and served through this endpoint. This allows you to test how your scraper handles large file downloads without redirecting. The server acts as a proxy, fetching content from the external source and delivering it to your scraper.
+      if (!object) {
+        return c.text(`File not found in R2: ${r2Key}`, 404);
+      }
 
-This approach is useful for testing bandwidth handling, timeout settings, and memory management when scraping large resources. Ensure your scraper can handle files of this size efficiently without excessive memory usage or timeout errors. Large files require careful handling to avoid overwhelming your scraper's memory or causing timeout issues.
+      // Prepare headers
+      const headers = {
+        'Content-Type': contentType,
+        'Content-Length': String(object.size),
+        'ETag': object.httpEtag,
+      };
 
-Instructions:
-1. Upload your 1MB file to the external storage location
-2. Set the PATH_1MB environment variable to the absolute URL
-3. Test your scraper against this endpoint
-4. Verify that the scraper correctly retrieves and processes the 1MB content
+      if (filename) {
+        headers['Content-Disposition'] = `inline; filename="${filename}"`;
+      }
 
-This response text is intentionally longer than 200 characters to provide adequate context for configuration and testing purposes.`;
-
-  res.type('text/plain').send(content);
+      // Return response with R2 object body
+      return new Response(object.body, {
+        status: 200,
+        headers,
+      });
+    } else {
+      // Node.js: use local file system
+      return await loadFromLocalFileSystem(localRelativePath, contentType, filename, c);
+    }
+  } catch (error) {
+    console.error('[size] File load error:', error.message);
+    return c.text(`Error loading file: ${error.message}`, 500);
+  }
 }
 
-export function handle10Mb(req, res) {
-  const externalPath = process.env.PATH_10MB || 'https://example.com/path/to/10mb-file.txt';
-  
-  const content = `This endpoint is configured to serve 10MB of content from an external path.
+export async function handle100Kb(c) {
+  return loadStaticFile(c, FILE_100KB_PATH, '../../public/files/100kb.txt', 'text/plain', '100kb.txt');
+}
 
-Current external path: ${externalPath}
+export async function handle1Mb(c) {
+  return loadStaticFile(c, FILE_1MB_PATH, '../../public/files/1mb.txt', 'text/plain', '1mb.txt');
+}
 
-Configuration:
-- Environment variable: PATH_10MB
-- Default value: https://example.com/path/to/10mb-file.txt
-- Purpose: Serve 10MB of content for testing scraper handling of very large files
-
-The content should be fetched from the configured external path and served through this endpoint. This allows you to test how your scraper handles very large file downloads without redirecting. The server acts as a proxy, fetching content from the external source and delivering it to your scraper.
-
-This approach is useful for testing bandwidth handling, timeout settings, and memory management when scraping very large resources. Ensure your scraper can handle files of this size efficiently without excessive memory usage or timeout errors. Very large files require streaming or chunked processing to avoid overwhelming your scraper's memory or causing timeout issues.
-
-Instructions:
-1. Upload your 10MB file to the external storage location
-2. Set the PATH_10MB environment variable to the absolute URL
-3. Test your scraper against this endpoint
-4. Verify that the scraper correctly retrieves and processes the 10MB content
-
-This response text is intentionally longer than 200 characters to provide adequate context for configuration and testing purposes.`;
-
-  res.type('text/plain').send(content);
+export async function handle10Mb(c) {
+  return loadStaticFile(c, FILE_10MB_PATH, '../../public/files/10mb.txt', 'text/plain', '10mb.txt');
 }

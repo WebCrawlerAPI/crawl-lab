@@ -16,3 +16,5 @@ pnpm-debug.log*
 
 # VS Code
 .vscode/
+
+wrangler.toml

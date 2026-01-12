@@ -1,4 +1,6 @@
-export function handleJsInline(req, res) {
+const renderScript = "document.getElementById('content').innerHTML = '<h1>Content Rendered with External JavaScript</h1><p>This content was rendered by an external JavaScript file loaded via script tag with src attribute. If you fetch this page using a simple HTTP request without JavaScript execution, you will see an empty div with id=\"content\". The actual content is only visible when the external JavaScript file is loaded and executed in a browser environment.</p><p>The purpose of this endpoint is to test if your scraper can handle JavaScript-rendered content that comes from external script files. Modern websites often load JavaScript from external CDNs or separate files, so it is important that your scraper can handle this scenario correctly.</p><p>This text is longer than 200 characters to provide adequate content for testing purposes and to ensure that your scraper can extract meaningful data from pages that use external JavaScript files for content rendering.</p>'";
+
+export function handleJsInline(c) {
   const content = `<!DOCTYPE html>
 <html>
 <head>
@@ -12,10 +14,10 @@ export function handleJsInline(req, res) {
 </body>
 </html>`;
 
-  res.type('text/html').send(content);
+  return c.html(content);
 }
 
-export function handleJsExternal(req, res) {
+export function handleJsExternal(c) {
   const content = `<!DOCTYPE html>
 <html>
 <head>
@@ -27,10 +29,10 @@ export function handleJsExternal(req, res) {
 </body>
 </html>`;
 
-  res.type('text/html').send(content);
+  return c.html(content);
 }
 
-export function handleJsImage(req, res) {
+export function handleJsImage(c) {
   const content = `<!DOCTYPE html>
 <html>
 <head>
@@ -50,5 +52,12 @@ export function handleJsImage(req, res) {
 </body>
 </html>`;
 
-  res.type('text/html').send(content);
+  return c.html(content);
+}
+
+export function handleJsRenderScript(c) {
+  return c.newResponse(renderScript, {
+    status: 200,
+    headers: { 'Content-Type': 'application/javascript' },
+  });
 }

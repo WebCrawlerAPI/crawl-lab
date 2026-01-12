@@ -1,4 +1,4 @@
-export function handleMarkdown(req, res) {
+export function handleMarkdown(c) {
   const content = `# Markdown Content Page
 
 This is a markdown-formatted document for testing scraper API content type handling.
@@ -21,12 +21,15 @@ console.log(example);
 \`\`\`
 
 ## Links and Formatting
-This paragraph contains **bold text**, *italic text*, and \`inline code\`. The purpose of this markdown document is to provide a substantial amount of markdown-formatted content (well over 200 characters) for testing scraper APIs that need to parse and understand markdown content types correctly.`;
+This paragraph contains **bold text**, *italic text*. The purpose of this markdown document is to provide a substantial amount of markdown-formatted content (well over 200 characters) for testing scraper APIs that need to parse and understand markdown content types correctly.`;
 
-  res.type('text/markdown').send(content);
+  return c.newResponse(content, {
+    status: 200,
+    headers: { 'Content-Type': 'text/markdown' },
+  });
 }
 
-export function handleJson(req, res) {
+export function handleJson(c) {
   const content = {
     message: "This is a JSON response for testing scraper API content type handling",
     status: "success",
@@ -47,10 +50,10 @@ export function handleJson(req, res) {
     details: "The JSON content is designed to be substantial enough (over 200 characters) to test real-world scraper scenarios. JSON is a common data format used by many APIs and web applications, so it's important that your scraper can handle it correctly. This response includes nested objects, arrays, and various data types."
   };
   
-  res.type('application/json').json(content);
+  return c.json(content);
 }
 
-export function handleXml(req, res) {
+export function handleXml(c) {
   const content = `<?xml version="1.0" encoding="UTF-8"?>
 <response>
   <message>This is an XML response for testing scraper API content type handling</message>
@@ -72,10 +75,13 @@ export function handleXml(req, res) {
   <details>The XML content is designed to be substantial enough (over 200 characters) to test real-world scraper scenarios. XML is a common data format used by many APIs and web applications, so it's important that your scraper can handle it correctly. This response includes nested elements, attributes, and various data types for comprehensive testing.</details>
 </response>`;
 
-  res.type('application/xml').send(content);
+  return c.newResponse(content, {
+    status: 200,
+    headers: { 'Content-Type': 'application/xml' },
+  });
 }
 
-export function handleHtml(req, res) {
+export function handleHtml(c) {
   const content = `<!DOCTYPE html>
 <html>
 <head>
@@ -98,10 +104,10 @@ export function handleHtml(req, res) {
 </body>
 </html>`;
 
-  res.type('text/html').send(content);
+  return c.html(content);
 }
 
-export function handleText(req, res) {
+export function handleText(c) {
   const content = `This is a plain text response for testing scraper API content type handling. The endpoint returns plain text content with text/plain content type header.
 
 The purpose of this endpoint is to test how your scraper handles simple plain text responses without any formatting or structure. Plain text is one of the simplest content types, but it's still important to handle correctly.
@@ -110,10 +116,10 @@ This content is designed to be substantial enough (over 200 characters) to test 
 
 Your scraper should be able to extract this text content and handle it appropriately without attempting to parse it as JSON, XML, HTML, or any other structured format. The text/plain content type indicates that this is unstructured text data.`;
 
-  res.type('text/plain').send(content);
+  return c.text(content);
 }
 
-export function handleCsv(req, res) {
+export function handleCsv(c) {
   const content = `id,name,description,quantity,price
 1,First Item,This is the first item in the CSV dataset,10,19.99
 2,Second Item,This item has more details about product,5,29.99
@@ -123,10 +129,13 @@ export function handleCsv(req, res) {
 
 This CSV file is designed to test scraper API content type handling. It includes multiple rows and columns with various data types including integers, decimals, and text strings. The CSV format uses comma-separated values which is a common data interchange format. Your scraper should be able to parse this CSV content correctly when it encounters the text/csv content type header. This description row and additional text ensure the content is over 200 characters for comprehensive testing purposes.`;
 
-  res.type('text/csv').send(content);
+  return c.newResponse(content, {
+    status: 200,
+    headers: { 'Content-Type': 'text/csv' },
+  });
 }
 
-export function handleTsv(req, res) {
+export function handleTsv(c) {
   const content = `id\tname\tdescription\tquantity\tprice
 1\tFirst Item\tThis is the first item in the TSV dataset\t10\t19.99
 2\tSecond Item\tThis item has more details about product\t5\t29.99
@@ -136,5 +145,8 @@ export function handleTsv(req, res) {
 
 This TSV file is designed to test scraper API content type handling. It includes multiple rows and columns with various data types including integers, decimals, and text strings. The TSV format uses tab-separated values which is another common data interchange format. Your scraper should be able to parse this TSV content correctly when it encounters the text/tab-separated-values content type header. This description row and additional text ensure the content is over 200 characters for comprehensive testing purposes.`;
 
-  res.type('text/tab-separated-values').send(content);
+  return c.newResponse(content, {
+    status: 200,
+    headers: { 'Content-Type': 'text/tab-separated-values' },
+  });
 }

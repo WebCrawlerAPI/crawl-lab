@@ -61,15 +61,18 @@ const statusMessages = {
 
 export const statusEntries = Object.entries(statusMessages);
 
+export function handleStatus(c) {
+  const code = Number.parseInt(c.req.param('code'), 10);
 
-export function handleStatus(req, res) {
-  const code = parseInt(req.params.code, 10);
-  
   if (!statusMessages[code]) {
-    return res.status(400).type('text/plain').send('This is page with 400 status - Invalid status code provided. Please provide a valid HTTP status code between 100 and 511. This scraper testing API is designed to help you test various web scraping scenarios. Check the main page at / for a list of all available endpoints and their usage.');
+    return c.text('This is page with 400 status - Invalid status code provided. Please provide a valid HTTP status code between 100 and 511. This scraper testing API is designed to help you test various web scraping scenarios. Check the main page at / for a list of all available endpoints and their usage.', 400);
+  }
+
+  if (code === 101 || code === 204 || code === 205 || code === 304) {
+    return c.newResponse(null, { status: code, headers: { 'Content-Length': '0' } });
   }
 
   const message = `This is page with ${code} status. The HTTP status code ${code} represents "${statusMessages[code]}". This is a scraper testing API endpoint designed to help you test how your web scraping tool handles different HTTP response status codes. You can use this endpoint to verify that your scraper correctly interprets and responds to various HTTP status codes including success codes, redirect codes, client error codes, and server error codes. This response text is intentionally longer than 200 characters to provide adequate content for testing purposes.`;
 
-  res.status(code).type('text/plain').send(message);
+  return c.text(message, code);
 }

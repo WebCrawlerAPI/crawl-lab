@@ -1,13 +1,30 @@
-import express from 'express';
-import { setupRoutes } from './routes.js';
+import { fileURLToPath } from 'node:url';
+import { buildApp } from './app.js';
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+const app = buildApp();
 
-app.use(express.json());
+async function startNodeServer() {
+  if (typeof process === 'undefined' || process.release?.name !== 'node') {
+    return;
+  }
 
-setupRoutes(app);
+  const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
 
-app.listen(PORT, () => {
-  console.log(`Scraper Tester server running on port ${PORT}`);
-});
+  if (!isMainModule) {
+    return;
+  }
+
+  const { serve } = await import('@hono/node-server');
+  const port = Number.parseInt(process.env.PORT ?? '3000', 10) || 3000;
+
+  console.log(`Crawl Lab is running at http://localhost:${port}`);
+
+  serve({
+    fetch: app.fetch,
+    port,
+  });
+}
+
+startNodeServer();
+
+export default app;

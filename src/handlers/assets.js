@@ -1,35 +1,130 @@
-import express from 'express';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+// R2 file paths
+const PDF_FILE_PATH = 'assets/sample.pdf';
+const PNG_FILE_PATH = 'assets/sample.png';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Detect environment once
+const isLocalEnv = typeof process !== 'undefined' && process.env.NODE_ENV !== 'local';
 
-const router = express.Router();
+async function loadFromLocalFileSystem(localRelativePath, contentType, filename, c) {
+  // Node.js or fallback: dynamically import fs modules
+  const { readFile } = await import('node:fs/promises');
+  const { fileURLToPath } = await import('node:url');
+  const { dirname, join } = await import('node:path');
 
-export function handlePdf(req, res) {
-  const pdfPath = join(__dirname, '../../public/files/pdf/sample.pdf');
-  res.sendFile(pdfPath, (err) => {
-    if (err) {
-      res.status(404).type('text/plain').send('PDF file not found. Please upload a PDF file to public/files/pdf/sample.pdf and try again. This endpoint is designed to serve a PDF file for testing scraper handling of binary content. PDF files are common document formats that scrapers may encounter when extracting data from documentation repositories or document archives.');
-    }
-  });
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const fullPath = join(__dirname, localRelativePath);
+  const body = await readFile(fullPath);
+
+  const headers = {
+    'Content-Type': contentType,
+    'Content-Length': String(body.byteLength)
+  };
+
+  if (filename) {
+    headers['Content-Disposition'] = `inline; filename="${filename}"`;
+  }
+
+  return c.newResponse(body, { status: 200, headers });
 }
 
-export function handleSimplePdf(req, res) {
-  const pdfPath = join(__dirname, '../../public/files/pdf/sample.pdf');
-  res.sendFile(pdfPath, (err) => {
-    if (err) {
-      res.status(404).type('text/plain').send('PDF file not found. Please upload a PDF file to public/files/pdf/sample.pdf and try again. This endpoint serves the same PDF content as /pdf. Having multiple paths to the same content tests if your scraper can handle duplicate content served from different URLs. This is a common scenario on websites where the same document might be accessible through multiple paths.');
+async function loadStaticFile(c, r2Key, localRelativePath, contentType, filename) {
+  try {
+    // Check if running in Cloudflare Workers environment
+    if (!isLocalEnv) {
+      // Cloudflare Workers: use R2 bucket only
+      const bucket = c.env.ASSETS_BUCKET;
+
+      if (!bucket) {
+        return c.text('R2 bucket not configured. Please set up ASSETS_BUCKET binding in wrangler.toml', 500);
+      }
+
+      // Fetch object from R2
+      const object = await bucket.get(r2Key);
+
+      if (!object) {
+        return c.text(`File not found in R2: ${r2Key}`, 404);
+      }
+
+      // Prepare headers
+      const headers = {
+        'Content-Type': contentType,
+        'Content-Length': String(object.size),
+        'ETag': object.httpEtag,
+      };
+
+      if (filename) {
+        headers['Content-Disposition'] = `inline; filename="${filename}"`;
+      }
+
+      // Return response with R2 object body
+      return new Response(object.body, {
+        status: 200,
+        headers,
+      });
+    } else {
+      // Node.js: use local file system
+      return await loadFromLocalFileSystem(localRelativePath, contentType, filename, c);
     }
-  });
+  } catch (error) {
+    console.error('[assets] File load error:', error.message);
+    return c.text(`Error loading file: ${error.message}`, 500);
+  }
 }
 
-export function handleImagePng(req, res) {
-  const imagePath = join(__dirname, '../../public/images/sample.png');
-  res.sendFile(imagePath, (err) => {
-    if (err) {
-      res.status(404).type('text/plain').send('Image file not found. Please upload a PNG image to public/images/sample.png and try again. This endpoint is designed to serve an image file for testing scraper handling of image content. Images are common media types that scrapers may encounter when extracting data from image galleries, product pages, or media archives. Your scraper should be able to handle binary image content appropriately, whether it extracts metadata, processes the image, or skips it based on your requirements.');
+export async function handlePdf(c) {
+  return loadStaticFile(c, PDF_FILE_PATH, '../../public/files/pdf/sample.pdf', 'application/pdf', 'sample.pdf');
+}
+
+export async function handleSimplePdf(c) {
+  return loadStaticFile(c, PDF_FILE_PATH, '../../public/files/pdf/sample.pdf', 'application/pdf', 'sample.pdf');
+}
+
+export async function handleImagePng(c) {
+  return loadStaticFile(c, PNG_FILE_PATH, '../../public/images/sample.png', 'image/png', 'sample.png');
+}
+
+export async function handlePublicAssets(c) {
+  try {
+    if (!isLocalEnv) {
+      // Cloudflare Workers: use R2 bucket
+      const bucket = c.env.ASSETS_BUCKET;
+
+      if (!bucket) {
+        return c.text('R2 bucket not configured', 500);
+      }
+
+      // Strip '/public' prefix from the URL path and construct R2 key
+      const originalPath = new URL(c.req.url).pathname;
+      const pathWithoutPublic = originalPath.replace(/^\/public\//, '');
+
+      // Construct R2 key - assuming files are in 'assets/' prefix in R2
+      const r2Key = `assets/${pathWithoutPublic}`;
+
+      // Fetch object from R2
+      const object = await bucket.get(r2Key);
+
+      if (!object) {
+        return c.text('Not found', 404);
+      }
+
+      // Determine content type from file extension
+      const contentType = object.httpMetadata?.contentType || 'application/octet-stream';
+
+      // Return response with R2 object body
+      return new Response(object.body, {
+        status: 200,
+        headers: {
+          'Content-Type': contentType,
+          'Content-Length': String(object.size),
+          'ETag': object.httpEtag,
+        },
+      });
     }
-  });
+
+    // Node.js: return 404
+    return c.text('Not found', 404);
+  } catch (error) {
+    console.error('[assets] Public asset error:', error.message);
+    return c.text('Not found', 404);
+  }
 }

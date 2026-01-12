@@ -1,12 +1,13 @@
-export function handleLongResponse(req, res) {
-  const responseAfter = parseInt(req.query.responseAfter, 10) || 5;
-  
+export async function handleLongResponse(c) {
+  const responseAfter = Number.parseInt(c.req.query('responseAfter') ?? '5', 10) || 5;
+
   if (responseAfter < 0 || responseAfter > 300) {
-    return res.status(400).type('text/plain').send('This is page with 400 status - Invalid responseAfter parameter. Must be between 0 and 300 seconds.');
+    return c.text('This is page with 400 status - Invalid responseAfter parameter. Must be between 0 and 300 seconds.', 400);
   }
 
-  setTimeout(() => {
-    const content = `This is a long response page that waited ${responseAfter} seconds before responding. The purpose of this endpoint is to test how your scraper handles slow or delayed responses.
+  await new Promise((resolve) => setTimeout(resolve, responseAfter * 1000));
+
+  const content = `This is a long response page that waited ${responseAfter} seconds before responding. The purpose of this endpoint is to test how your scraper handles slow or delayed responses.
 
 Long-response testing is important for:
 1. Verifying timeout handling in your scraper
@@ -16,11 +17,10 @@ Long-response testing is important for:
 
 This endpoint accepts a query parameter 'responseAfter' (in seconds) to control how long it waits before sending the response. The default is 5 seconds, but you can customize it for your testing needs. This response text is intentionally longer than 200 characters to provide adequate content for testing purposes.`;
 
-    res.type('text/plain').send(content);
-  }, responseAfter * 1000);
+  return c.text(content);
 }
 
-export function handleDuplicate1(req, res) {
+export function handleDuplicate1(c) {
   const content = `This is duplicate content page number 1. Both duplicate/1 and duplicate/2 return exactly the same content to test if your scraper can identify duplicate pages.
 
 The purpose of these duplicate pages is to test deduplication functionality in your scraping system. When scraping websites, you may encounter duplicate content across different URLs. A good scraper should be able to identify and handle these duplicates efficiently.
@@ -32,10 +32,10 @@ Duplicate detection can help you:
 
 This content is the same for both /duplicates/1 and /duplicates/2. Test your scraper to see if it correctly identifies these as duplicate content based on the page body or other metrics. This response is over 200 characters to provide adequate content for testing purposes.`;
 
-  res.type('text/plain').send(content);
+  return c.text(content);
 }
 
-export function handleDuplicate2(req, res) {
+export function handleDuplicate2(c) {
   const content = `This is duplicate content page number 1. Both duplicate/1 and duplicate/2 return exactly the same content to test if your scraper can identify duplicate pages.
 
 The purpose of these duplicate pages is to test deduplication functionality in your scraping system. When scraping websites, you may encounter duplicate content across different URLs. A good scraper should be able to identify and handle these duplicates efficiently.
@@ -47,47 +47,39 @@ Duplicate detection can help you:
 
 This content is the same for both /duplicates/1 and /duplicates/2. Test your scraper to see if it correctly identifies these as duplicate content based on the page body or other metrics. This response is over 200 characters to provide adequate content for testing purposes.`;
 
-  res.type('text/plain').send(content);
+  return c.text(content);
 }
 
-export function handleTemporaryRedirect(req, res) {
-  res.redirect(302, '/status/200');
+export function handleTemporaryRedirect(c) {
+  return c.redirect('/status/200', 302);
 }
 
-export function handlePermanentRedirect(req, res) {
-  res.redirect(301, '/status/200');
+export function handlePermanentRedirect(c) {
+  return c.redirect('/status/200', 301);
 }
 
-export function handleHeaders(req, res) {
-  const headers = req.headers;
-  
+export function handleHeaders(c) {
+  const headers = Array.from(c.req.raw.headers.entries());
+
   let content = 'Request Headers:\n\n';
-  
-  for (const [key, value] of Object.entries(headers)) {
-    content += `${key}: ${Array.isArray(value) ? value.join(', ') : value}\n`;
+
+  for (const [key, value] of headers) {
+    content += `${key}: ${value}\n`;
   }
-  
+
   content += '\n\nThis endpoint returns all the HTTP headers that your scraper sent with the request. This is useful for testing how your scraper handles headers and for debugging header-related issues. Headers contain important metadata about the request including user agent, accept types, authorization, cookies, and more. A good scraper should be able to handle and optionally send custom headers. This response text is intentionally longer than 200 characters to provide adequate context for testing purposes.';
 
-  res.type('text/plain').send(content);
+  return c.text(content);
 }
 
-export function handleUuid(req, res) {
+export function handleUuid(c) {
   const uuid = crypto.randomUUID();
-  const content = `This endpoint returns a random UUID (Universally Unique Identifier): ${uuid}
+  const content = `${uuid}`;
 
-The purpose of this endpoint is to test if your scraper can handle unique, random content that changes on each request. UUIDs are commonly used for:
-- Unique identifiers in databases
-- Session tokens
-- Request tracking
-- Distributed systems coordination
-
-Your scraper should be able to extract this UUID value from the response and handle the fact that it will be different on each request. This is important for testing how your scraper handles dynamic content that changes on every page load. This response text is intentionally longer than 200 characters to provide adequate context for testing purposes.`;
-
-  res.type('text/plain').send(content);
+  return c.text(content);
 }
 
-export function handleRandom(req, res) {
+export function handleRandom(c) {
   const randomText = generateRandomText(300);
   const content = `This endpoint returns random content that changes on each request.
 
@@ -102,7 +94,7 @@ The purpose of this endpoint is to test how your scraper handles dynamic content
 
 Your scraper should be able to handle random content appropriately, understanding that the content will vary between requests. This response text is intentionally longer than 200 characters to provide adequate context for testing purposes.`;
 
-  res.type('text/plain').send(content);
+  return c.text(content);
 }
 
 function generateRandomText(length) {
@@ -118,6 +110,17 @@ function generateRandomText(length) {
   return text;
 }
 
-export function handleEmpty(req, res) {
-  res.status(204).set('Content-Length', '0').end();
+export function handleEmpty(c) {
+  return c.newResponse(null, {
+    status: 204,
+    headers: { 'Content-Length': '0' },
+  });
+}
+
+export function handleCycleA(c) {
+  return c.redirect('/redirect/cycle-b', 302);
+}
+
+export function handleCycleB(c) {
+  return c.redirect('/redirect/cycle-a', 302);
 }

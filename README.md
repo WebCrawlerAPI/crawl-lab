@@ -1,14 +1,16 @@
-# Scraper Tester API
+# Crawl Lab
+
+Want to test your scaper?
 
 ## Introduction
-A minimal Express.js server for testing web scraping APIs with various scenarios.
+A minimal Hono server for testing web scraping APIs with various scenarios.
 All handlers stay small so you can quickly inspect response patterns and adjust scraping heuristics as needed.
 
 **Features**
-- Minimal dependencies: only Express.js and UUID are required.
+- Minimal dependencies: Hono powers routing with `@hono/node-server` for local Node runs.
 - No styling: responses are plain text or unstyled HTML to keep scraping behaviour predictable.
 - Comprehensive coverage: status codes, content types, redirects, delays, and asset pipelines are all represented.
-- Cloudflare Workers ready: the app avoids Node.js-specific APIs so it can be adapted for serverless runtimes.
+- Cloudflare Workers ready: the app exports a Hono fetch handler that runs in Workers with `nodejs_compat`.
 - 200+ character responses: every textual endpoint returns substantial payloads for realistic scraping tests.
 
 ## Endpoints
@@ -24,6 +26,7 @@ All handlers stay small so you can quickly inspect response patterns and adjust 
 - `GET /js/inline` - HTML with inline JavaScript rendering (fetch returns minimal HTML).
 - `GET /js/external` - HTML with external script file rendering.
 - `GET /js/image.png` - HTML with JavaScript that renders an image tag.
+- `GET /js/render.js` - Served JavaScript that renders content into the `/js/external` page.
 
 ### Special Pages
 - `GET /long-response?responseAfter=N` - Response delayed by N seconds (default: 5).
@@ -96,22 +99,22 @@ Place your test files in the following directories:
 
 - `public/files/pdf/sample.pdf` - PDF file for `/pdf` and `/simple.pdf` endpoints.
 - `public/images/sample.png` - PNG image for `/image.png` endpoint.
+- `public/js/render.js` - JavaScript loaded by `/js/external`.
 
 ## Cloudflare Workers Deployment
 
 This project is designed with Cloudflare Workers compatibility in mind:
 
-- Uses standard Express.js API.
-- Avoids Node.js-specific APIs.
+- Uses the Hono fetch handler export instead of Express middleware.
+- Avoids Node.js-specific APIs beyond the optional `@hono/node-server` convenience for local runs.
 - All routes use standard HTTP methods (`GET`).
-- Can be adapted using `@cloudflare/worker-express`.
+- Works with `nodejs_compat` and the `cloudflare` build target.
 
 To deploy to Cloudflare Workers, you'll need to:
 
-1. Adapt the Express app to work with the Cloudflare Workers runtime.
-2. Use the `@cloudflare/worker-express` package or rewrite using the Workers API directly.
-3. Configure environment variables for Workers.
-4. Handle static files appropriately (Workers doesn't have native file system access).
+1. Use the default export from `src/index.js` as the Worker entry.
+2. Configure environment variables for Workers.
+3. Keep static files bundled or served from compatible storage when deploying.
 
 ## License
 

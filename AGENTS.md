@@ -142,3 +142,6 @@
 - When unsure about style, mirror adjacent files instead of introducing new conventions.
 - Re-run relevant start/dev commands after changes to confirm the server boots.
 - Keep this document around ~150 lines; extend carefully if new rules are needed.
+
+## Remote url
+Remove service URL is crwallab.dev

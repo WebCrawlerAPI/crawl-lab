@@ -11,7 +11,8 @@ const section = (title, items) => `
 
 export function buildIndexHtml() {
   const statusItems = statusEntries
-    .map(([code, name]) => `<li><a href="/status/${code}">${code} ${name}</a></li>`);
+    .filter(([code]) => Number.parseInt(code, 10) >= 200)
+    .map(([code, name]) => `<li><a href="/${code}">${code} ${name}</a></li>`);
 
   return `<!DOCTYPE html>
 <html>
@@ -32,8 +33,8 @@ export function buildIndexHtml() {
     '<li><a href="/long-response?responseAfter=5">/long-response?responseAfter=5</a> - Delayed response after specified seconds</li>',
     '<li><a href="/duplicates/1">/duplicates/1</a> - First duplicate page content</li>',
     '<li><a href="/duplicates/2">/duplicates/2</a> - Second duplicate page (identical content)</li>',
-    '<li><a href="/redirect/temporary-to-200">/redirect/temporary-to-200</a> - 302 redirect to /status/200</li>',
-    '<li><a href="/redirect/permanent-to-200">/redirect/permanent-to-200</a> - 301 redirect to /status/200</li>',
+    '<li><a href="/redirect/temporary-to-200">/redirect/temporary-to-200</a> - 302 redirect to /200</li>',
+    '<li><a href="/redirect/permanent-to-200">/redirect/permanent-to-200</a> - 301 redirect to /200</li>',
     '<li><a href="/redirect/cycle-a">/redirect/cycle-a</a> - 302 redirect to cycle-b (infinite cycle A → B → A)</li>',
     '<li><a href="/redirect/cycle-b">/redirect/cycle-b</a> - 302 redirect to cycle-a (infinite cycle B → A → B)</li>',
     '<li><a href="/headers">/headers</a> - Echo request headers</li>',

@@ -51,11 +51,11 @@ This content is the same for both /duplicates/1 and /duplicates/2. Test your scr
 }
 
 export function handleTemporaryRedirect(c) {
-  return c.redirect('/status/200', 302);
+  return c.redirect('/200', 302);
 }
 
 export function handlePermanentRedirect(c) {
-  return c.redirect('/status/200', 301);
+  return c.redirect('/200', 301);
 }
 
 export function handleHeaders(c) {

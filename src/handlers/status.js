@@ -68,7 +68,13 @@ export function handleStatus(c) {
     return c.text('This is page with 400 status - Invalid status code provided. Please provide a valid HTTP status code between 100 and 511. This scraper testing API is designed to help you test various web scraping scenarios. Check the main page at / for a list of all available endpoints and their usage.', 400);
   }
 
-  if (code === 101 || code === 204 || code === 205 || code === 304) {
+  // 1xx status codes cannot be used with Response objects (Fetch API limitation)
+  // They are informational codes not supported in standard HTTP responses
+  if (code >= 100 && code < 200) {
+    return c.text(`This is page with 400 status - Status code ${code} ("${statusMessages[code]}") cannot be simulated. Informational status codes (1xx range) are not supported by the Response API as they are protocol-level codes that cannot be represented in standard HTTP responses. Please use status codes in the 200-599 range. This scraper testing API is designed to help you test various web scraping scenarios. Check the main page at / for a list of all available endpoints and their usage.`, 400);
+  }
+
+  if (code === 204 || code === 205 || code === 304) {
     return c.newResponse(null, { status: code, headers: { 'Content-Length': '0' } });
   }
 

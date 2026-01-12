@@ -1,17 +1,15 @@
 # Crawl Lab
 
 Want to test your scaper?
-
-## Introduction
-A minimal Hono server for testing web scraping APIs with various scenarios.
-All handlers stay small so you can quickly inspect response patterns and adjust scraping heuristics as needed.
-
-**Features**
-- Minimal dependencies: Hono powers routing with `@hono/node-server` for local Node runs.
-- No styling: responses are plain text or unstyled HTML to keep scraping behaviour predictable.
-- Comprehensive coverage: status codes, content types, redirects, delays, and asset pipelines are all represented.
-- Cloudflare Workers ready: the app exports a Hono fetch handler that runs in Workers with `nodejs_compat`.
-- 200+ character responses: every textual endpoint returns substantial payloads for realistic scraping tests.
+* all status codes at /<status code>
+* PDFs
+* images
+* big content
+* cycle redirect
+* different content types
+* empty content
+* JS rendering
+* controlled delayed response at /long-response?responseAfter=5 (seconds)
 
 ## Endpoints
 

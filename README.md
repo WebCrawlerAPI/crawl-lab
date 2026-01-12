@@ -1,7 +1,7 @@
 # Crawl Lab
 
 Want to test your scaper?
-* all status codes at /<status code>
+* all status codes at `/<status code>`
 * PDFs
 * images
 * big content
@@ -9,7 +9,7 @@ Want to test your scaper?
 * different content types
 * empty content
 * JS rendering
-* controlled delayed response at /long-response?responseAfter=5 (seconds)
+* controlled delayed response at `/long-response?responseAfter=5` (seconds)
 
 ## Endpoints
 

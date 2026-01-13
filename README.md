@@ -1,5 +1,7 @@
 # Crawl Lab
 
+![screenshot](screenshot.png)
+
 Want to test your scaper?
 * all status codes at `/<status code>`
 * PDFs

@@ -53,7 +53,12 @@ export function buildIndexHtml() {
   ])}
   ${section('Forum Pages', [
     '<li><a href="/forum?page=1">/forum?page=1</a> - Forum discussion page 1</li>',
-    '<li><a href="/forum?page=2">/forum?page=2</a> - Forum discussion page 2</li>'
+    '<li><a href="/forum?page=2">/forum?page=2</a> - Forum discussion page 2</li>',
+    '<li><a href="/forum?page=10">/forum?page=10</a> - Forum discussion page 10 of 20</li>',
+    '<li><a href="/forum?page=20">/forum?page=20</a> - Forum discussion page 20 of 20</li>',
+    '<li><a href="/forum/shop/1">/forum/shop/1</a> - Book shop discussion thread 1</li>',
+    '<li><a href="/forum/shop/2">/forum/shop/2</a> - Book shop discussion thread 2</li>',
+    '<li><a href="/forum/shop/3">/forum/shop/3</a> - Book shop discussion thread 3</li>'
   ])}
   ${section('Size Pages', [
     '<li><a href="/100Kb">/100Kb</a> - Proxy instruction for 100KB external file</li>',

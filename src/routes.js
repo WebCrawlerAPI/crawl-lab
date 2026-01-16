@@ -2,7 +2,7 @@ import { handleStatus } from './handlers/status.js';
 import { handleMarkdown, handleJson, handleXml, handleHtml, handleText, handleCsv, handleTsv } from './handlers/content.js';
 import { handleLongResponse, handleDuplicate1, handleDuplicate2, handleTemporaryRedirect, handlePermanentRedirect, handleHeaders, handleUuid, handleRandom, handleEmpty, handleCycleA, handleCycleB } from './handlers/special.js';
 import { handleJsInline, handleJsExternal, handleJsImage, handleJsRenderScript } from './handlers/js.js';
-import { handleForum } from './handlers/forum.js';
+import { handleForum, handleForumShop } from './handlers/forum.js';
 import { handle100Kb, handle1Mb, handle10Mb } from './handlers/size.js';
 import { handlePdf, handleSimplePdf, handleImagePng, handlePublicAssets } from './handlers/assets.js';
 import { buildIndexHtml } from './pages/index.js';
@@ -36,6 +36,7 @@ export function setupRoutes(app) {
   app.get('/tsv', handleTsv);
 
   app.get('/forum', handleForum);
+  app.get('/forum/shop/:id', handleForumShop);
 
   app.get('/100Kb', handle100Kb);
   app.get('/1Mb', handle1Mb);

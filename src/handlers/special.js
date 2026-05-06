@@ -1,5 +1,15 @@
+export async function handleLongResponsePath(c) {
+  const raw = c.req.param('seconds') ?? '5s';
+  const responseAfter = Number.parseInt(raw, 10) || 5;
+  return handleLongResponseWithDelay(c, responseAfter);
+}
+
 export async function handleLongResponse(c) {
   const responseAfter = Number.parseInt(c.req.query('responseAfter') ?? '5', 10) || 5;
+  return handleLongResponseWithDelay(c, responseAfter);
+}
+
+async function handleLongResponseWithDelay(c, responseAfter) {
 
   if (responseAfter < 0 || responseAfter > 300) {
     return c.text('This is page with 400 status - Invalid responseAfter parameter. Must be between 0 and 300 seconds.', 400);
@@ -112,7 +122,7 @@ function generateRandomText(length) {
 
 export function handleEmpty(c) {
   return c.newResponse(null, {
-    status: 204,
+    status: 200,
     headers: { 'Content-Length': '0' },
   });
 }

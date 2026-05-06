@@ -1,6 +1,6 @@
 import { handleStatus } from './handlers/status.js';
 import { handleMarkdown, handleJson, handleXml, handleHtml, handleText, handleCsv, handleTsv } from './handlers/content.js';
-import { handleLongResponse, handleDuplicate1, handleDuplicate2, handleTemporaryRedirect, handlePermanentRedirect, handleHeaders, handleUuid, handleRandom, handleEmpty, handleCycleA, handleCycleB } from './handlers/special.js';
+import { handleLongResponse, handleLongResponsePath, handleDuplicate1, handleDuplicate2, handleTemporaryRedirect, handlePermanentRedirect, handleHeaders, handleUuid, handleRandom, handleEmpty, handleCycleA, handleCycleB } from './handlers/special.js';
 import { handleJsInline, handleJsExternal, handleJsImage, handleJsRenderScript } from './handlers/js.js';
 import { handleForum, handleForumShop } from './handlers/forum.js';
 import { handle100Kb, handle1Mb, handle10Mb } from './handlers/size.js';
@@ -16,6 +16,7 @@ export function setupRoutes(app) {
   app.get('/js/render.js', handleJsRenderScript);
 
   app.get('/long-response', handleLongResponse);
+  app.get('/long-response/:seconds', handleLongResponsePath);
   app.get('/duplicates/1', handleDuplicate1);
   app.get('/duplicates/2', handleDuplicate2);
   app.get('/redirect/temporary-to-200', handleTemporaryRedirect);

@@ -53,6 +53,8 @@ export function setupRoutes(app) {
 
   // Status code handler - must be last to avoid conflicting with named routes
   app.get('/:code', handleStatus);
+  app.post('/:code', handleStatus);
+  app.put('/:code', handleStatus);
 
   app.notFound((c) => c.text('This is page with 404 status - Page not found. The endpoint you requested does not exist on this server. Please check the main page at / for a list of all available endpoints and their usage. This is a scraper testing API designed to help you test various web scraping scenarios including different HTTP status codes, content types, JavaScript rendering, and more.', 404));
 }
